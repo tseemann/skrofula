@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+use 5.26.0;
+use strict;
+use FindBin;
+use lib "$FindBin::RealBin/../perl5";
+use Biotool::Getopt;
+use Biotool::Logger;
+use Biotool::Binaries;
+use Data::Dumper;
+
+sub main {
+  my $opt = Biotool::Getopt->getopt( 
+  {
+    name => 'skrofula',
+    version => '0.0.1',
+    desc => 'M.tuberculoso typing and resistance from Illumina WGS reads',
+    author => 'Torsten Seemann & Kristy Horan',
+    url => 'https://github.com/tseemann/skrofula',
+  },
+  {
+    outdir => { type=>'dir', need=>1, desc=>"Output folder" },
+    R1 => { type=>'file', need=>1, desc=>"Illumina R1 FASTQ file" },
+    R2 => { type=>'file', need=>1, desc=>"Illumina R2 FASTQ file" },
+    threads => { type=>'int', need=>1, default=>1, desc=>"CPU threads to use" },
+    #check => { type=>'bool', default=>0, desc=>"Check dependencies and exit" },
+  },
+  );
+
+  print Dumper($opt);
+
+  require_exe($_) for qw(bcftools MapCaller bwt_index);
+  return if $opt->{check};
+}
+
+exit main(@ARGV);
+
