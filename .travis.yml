@@ -16,5 +16,4 @@ install:
 script:
     - "skrofula --version"
     - "skrofula --help"
-    - "skrofula --check"
     - "cd perl5/Biotool && for M in *.pm ; do perl $M ; done"

@@ -34,7 +34,7 @@ sub main {
   my $opt = Biotool::Getopt->getopt( 
   {
     name => 'skrofula',
-    version => '0.0.1',
+    version => '0.0.2',
     desc => 'M.tuberculosis typing and resistance from Illumina WGS reads',
     author => 'Torsten Seemann',
     url => 'https://github.com/tseemann/skrofula',
@@ -49,7 +49,7 @@ sub main {
   },
   );
 
-  print Dumper($opt);
+  #print Dumper($opt);
 
   require_exe($_) for qw(bcftools MapCaller bwt_index);
   return if $opt->{check};
@@ -65,7 +65,6 @@ sub main {
   make_path($outdir);
   chdir($outdir);
 
-  
   run_cmd("MapCaller -i $dbdir/genome -ad 3 -ploidy 1 -t $$opt{threads}",
           " -vcf raw.vcf -f '$R1' -f2 '$R2'");
   run_cmd(qq{bcftools filter -i 'FILTER="PASS" && GT="1|1"' raw.vcf > good.vcf});
