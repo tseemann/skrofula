@@ -13,14 +13,15 @@ Yet another M.tuberculosis typing and resistance tool, but for the impatient
 
 Skrofula will take paired-end Illumina WGS reads of your
 _M.tuberculosis_ sample and infer the lineage and 
-antimicrobial resistance SNPs.
-
-This is not an original tool, but it is designed to be simple and fast.
-Other tools that may suit you better are:
+antimicrobial resistance SNPs. This is not an original tool,
+but it is designed to be simple and fast. I wrote it to learn
+more about _M.tb_ genomics. Other tools that may suit you better are:
 
 * [TBProfiler](https://github.com/jodyphelan/TBProfiler)
 * [MTBseq](https://github.com/ngs-fzb/MTBseq_source)
 * [Mykrobe](https://github.com/Mykrobe-tools/mykrobe)
+* [TGS-TB](https://gph.niid.go.jp/tgs-tb/)
+* [ReSeqTB](https://platform.reseqtb.org/)
 
 ## Quick Start
 
