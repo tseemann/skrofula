@@ -21,7 +21,7 @@ more about _M.tb_ genomics. Other tools that may suit you better are:
 * [MTBseq](https://github.com/ngs-fzb/MTBseq_source)
 * [Mykrobe](https://github.com/Mykrobe-tools/mykrobe)
 * [TGS-TB](https://gph.niid.go.jp/tgs-tb/)
-* [ReSeqTB](https://platform.reseqtb.org/)
+* [ReSeqTB UVP](https://github.com/CPTR-ReSeqTB/UVP)
 
 ## Quick Start
 
@@ -31,7 +31,7 @@ skrofula 0.1.2
 
 % skrofula --outdir TBdir --R1 Mtb_R1.fq.gz --R2 Mtb_R2.fq.gz --threads 8
 % ls TBdir
-snps.vcf resistome.tab
+snps.vcf lineage.txt resistome.tab
 ```
 
 ## Installation
@@ -61,6 +61,8 @@ $HOME/skrofula/bin/skrofula --help
 ## Dependencies
 
 * `perl` >= 5.26
+* `mapcaller` >= 0.9.9.15
+* `bcftools` >= 1.9
 
 ## Etymology
 
@@ -69,6 +71,7 @@ The name `skrofula` comes from
 which is the common name for the disease
 [mycobacterial cervical lymphadenitis](https://en.wikipedia.org/wiki/Mycobacterial_cervical_lymphadenitis)
 related to tuberculosis.
+Thank you to [Will Pitchers](https://github.com/willpitchers) for coining the name.
 
 ## License
 
@@ -80,6 +83,7 @@ skrofula is free software, released under the
 Please submit suggestions and bug reports to the
 [Issue Tracker](https://github.com/tseemann/skrofula/issues)
 
-## Author
+## Authors
 
-[Torsten Seemann](https://twitter.com/torstenseemann)
+* [Torsten Seemann](https://tseemann.github.io/)
+* [Kristy Horan](https://github.com/kristyhoran)
