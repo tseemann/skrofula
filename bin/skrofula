@@ -36,7 +36,7 @@ sub main {
     name => 'skrofula',
     version => '0.0.2',
     desc => 'M.tuberculosis typing and resistance from Illumina WGS reads',
-    author => 'Torsten Seemann',
+    author => 'Torsten Seemann & Kristy Horan',
     url => 'https://github.com/tseemann/skrofula',
   },
   {
@@ -67,7 +67,7 @@ sub main {
 
   run_cmd("MapCaller -i $dbdir/genome -ad 3 -ploidy 1 -t $$opt{threads}",
           " -vcf raw.vcf -f '$R1' -f2 '$R2'");
-  run_cmd(qq{bcftools filter -i 'FILTER="PASS" && GT="1|1"' raw.vcf > good.vcf});
+  run_cmd(qq{bcftools filter -i 'FILTER="PASS" && GT="1"' raw.vcf > good.vcf});
 }
 
 exit main(@ARGV);
