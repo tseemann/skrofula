@@ -31,7 +31,7 @@ skrofula 0.1.2
 
 % skrofula --outdir TBdir --R1 Mtb_R1.fq.gz --R2 Mtb_R2.fq.gz --threads 8
 % ls TBdir
-snps.vcf lineage.txt resistome.tab
+good.vcf lineage.bed amr.vcf
 ```
 
 ## Installation
@@ -61,8 +61,9 @@ $HOME/skrofula/bin/skrofula --help
 ## Dependencies
 
 * `perl` >= 5.26
-* `mapcaller` >= 0.9.9.15
+* `mapcaller` >= 0.9.9.18
 * `bcftools` >= 1.9
+* `bedtools` >= 2.2
 
 ## Etymology
 

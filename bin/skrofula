@@ -34,16 +34,16 @@ sub main {
   my $opt = Biotool::Getopt->getopt( 
   {
     name => 'skrofula',
-    version => '0.0.2',
+    version => '0.0.3',
     desc => 'M.tuberculosis typing and resistance from Illumina WGS reads',
     author => 'Torsten Seemann & Kristy Horan',
     url => 'https://github.com/tseemann/skrofula',
   },
   {
-    outdir => { type=>'dir', need=>1, desc=>"Output folder" },
-    db => { type=>'choice', need=>1, default=>$DB[0], choices=>\@DB, desc=>"Reference database" },
-    R1 => { type=>'file', need=>1, desc=>"Illumina R1 FASTQ file" },
-    R2 => { type=>'file', need=>1, desc=>"Illumina R2 FASTQ file" },
+    outdir  => { type=>'dir', need=>1, desc=>"Output folder" },
+    dbdir   => { type=>'dir', need=>1, default=>$DBDIR, desc=>"Database folder" },
+    R1      => { type=>'file', need=>1, desc=>"Illumina R1 FASTQ file" },
+    R2      => { type=>'file', need=>1, desc=>"Illumina R2 FASTQ file" },
     threads => { type=>'int', need=>1, default=>1, desc=>"CPU threads to use" },
     #check => { type=>'bool', default=>0, desc=>"Check dependencies and exit" },
   },
@@ -51,23 +51,35 @@ sub main {
 
   #print Dumper($opt);
 
-  require_exe($_) for qw(bcftools MapCaller bwt_index);
+  require_exe($_) for qw(bcftools MapCaller bwt_index bedtools);
+  my $dbdir = abs_path($$opt{dbdir} || $DBDIR);
+  -d $dbdir or err("Database folder '$dbdir' doesn't exist");
+  for my $fname (qw'genome.fna genome.fna.bwt lineage.bed amr.vcf') {
+    -r "$dbdir/$fname" or err("Can't see '$fname' in $dbdir");
+  }
   return if $opt->{check};
 
   my $R1 = abs_path($$opt{R1});
   my $R2 = abs_path($$opt{R2});
-
-  my $dbdir = $DBDIR.'/'.$$opt{db};  
-  -r "$dbdir/genome.bwt" or err("Missing genome.bwt in $dbdir");
 
   my $outdir = $$opt{outdir};
   msg("Setting up folder: $outdir");
   make_path($outdir);
   chdir($outdir);
 
-  run_cmd("MapCaller -i $dbdir/genome -ad 3 -ploidy 1 -t $$opt{threads}",
+  run_cmd("MapCaller -i $dbdir/genome.fna -ad 3 -ploidy 1 -t $$opt{threads}",
           " -vcf raw.vcf -f '$R1' -f2 '$R2'");
   run_cmd(qq{bcftools filter -i 'FILTER="PASS" && GT="1"' raw.vcf > good.vcf});
+  run_cmd(qq{bedtools intersect -header -wa -a $dbdir/lineage.bed -b good.vcf > lineage.bed});
+  run_cmd(qq{bedtools intersect -header -wa -a $dbdir/amr.vcf -b good.vcf > amr.vcf});
+  
+  msg("===LINEAGE===");
+  run_cmd(qq{cut -f4,7 lineage.bed});
+  msg("===VARIANTS===");
+  run_cmd(qq{bcftools query -f '%ID\n' amr.vcf | sort -u | tr "\n" " "});
+  msg("");
+  msg("===RESISTANCE===");
+  run_cmd(qq{bcftools query -f '%DRUGS\n' amr.vcf | sort -u});
 }
 
 exit main(@ARGV);
