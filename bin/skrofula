@@ -6,6 +6,7 @@ use lib "$FindBin::RealBin/../perl5";
 use Biotool::Getopt;
 use Biotool::Logger;
 use Biotool::Binaries;
+use Biotool::Tabular;
 use Data::Dumper;
 use Cwd qw(abs_path);
 use File::Path qw(make_path remove_tree);
@@ -34,7 +35,7 @@ sub main {
   my $opt = Biotool::Getopt->getopt( 
   {
     name => 'skrofula',
-    version => '0.0.3',
+    version => '0.0.4',
     desc => 'M.tuberculosis typing and resistance from Illumina WGS reads',
     author => 'Torsten Seemann & Kristy Horan',
     url => 'https://github.com/tseemann/skrofula',
@@ -51,7 +52,7 @@ sub main {
 
   #print Dumper($opt);
 
-  require_exe($_) for qw(bcftools MapCaller bwt_index bedtools);
+  require_exe($_) for qw(bcftools MapCaller bedtools cut sort tr);
   my $dbdir = abs_path($$opt{dbdir} || $DBDIR);
   -d $dbdir or err("Database folder '$dbdir' doesn't exist");
   for my $fname (qw'genome.fna genome.fna.bwt lineage.bed amr.vcf') {
@@ -67,22 +68,45 @@ sub main {
   make_path($outdir);
   chdir($outdir);
 
-  run_cmd("MapCaller -i $dbdir/genome.fna -ad 3 -ploidy 1 -t $$opt{threads}",
+  run_cmd("MapCaller -i $dbdir/genome.fna -alg ksw2 -ad 3 -ploidy 1 -t $$opt{threads}",
           " -vcf raw.vcf -f '$R1' -f2 '$R2'");
   run_cmd(qq{bcftools filter -i 'FILTER="PASS" && GT="1"' raw.vcf > good.vcf});
   run_cmd(qq{bedtools intersect -header -wa -a $dbdir/lineage.bed -b good.vcf > lineage.bed});
   run_cmd(qq{bedtools intersect -header -wa -a $dbdir/amr.vcf -b good.vcf > amr.vcf});
   
   msg("===LINEAGE===");
-  run_cmd(qq{cut -f4,7 lineage.bed});
+  #run_cmd(qq{cut -f4,7 lineage.bed});
+  my(@lin) = guess_lineage('lineage.bed');
+  msg(@lin);
   msg("===VARIANTS===");
-  run_cmd(qq{bcftools query -f '%ID\n' amr.vcf | sort -u | tr "\n" " "});
+  run_cmd(qq{bcftools query -f '%ID\\n' amr.vcf | sort -u | tr "\\n" " "});
   msg("");
   msg("===RESISTANCE===");
-  run_cmd(qq{bcftools query -f '%DRUGS\n' amr.vcf | sort -u});
+  run_cmd(qq{bcftools query -f '%DRUGS\\n' amr.vcf | tr "," "\\n" | sort -u | tr "\\n" " "});
+  msg("");
 }
 
 exit main(@ARGV);
 
+#0          1       2       3            4 5 6                    7             8
+#Chromosome 3498197 3498198 lineage2.2.1 C T East-Asian (Beijing) Beijing-RD181 RD105;RD>
+#Chromosome 3587445 3587446 lineage2.2   G A East-Asian (Beijing) Beijing-RD207 RD105;RD207
+#Chromosome 4254430 4254431 lineage2     G A East-Asian Beijing RD105
 
-
+sub guess_lineage {
+  my($bedfn) = @_;
+  my %lin;
+  my %lin2name;
+  open my $BED, '<', $bedfn;
+  while (<$BED>) {
+    chomp;
+    my @row = split m/\t/;
+    $lin{ $row[3] }++;
+    $lin2name{ $row[3] } = $row[6];
+  }
+  # sort by popularity first, then length of Lineage spec if tie-break.
+  my @lin = sort { $lin{$b} <=> $lin{$a} || length($b) <=> length($a) } keys %lin;
+#  msg(Dumper(\%lin, \%lin2name, \@lin));
+  return unless @lin;
+  return ( $lin[0], $lin2name{ $lin[0] } );
+}
